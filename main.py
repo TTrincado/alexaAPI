@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from fastapi.responses import HTMLResponse
 import requests
 
 app = FastAPI()
@@ -15,7 +16,33 @@ class Location(BaseModel):
 # Returns alexa model
 @app.get("/")
 def get_model():
-    return "Alexa"
+    html_content = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Alexa API Model</title>
+        <style>
+            body {
+                background-color: black;
+                color: white;
+                font-family: Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <h1>Alexa API model code MiniDev-P01</h1>
+            <p>OpenVet by MiniDev</p>
+        </div>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content, status_code=200)
 
 # Returns nearby veterinaries in a given location
 @app.post("/nearby_veterinaries/")
