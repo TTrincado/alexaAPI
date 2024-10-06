@@ -2,16 +2,15 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.responses import HTMLResponse
 import requests
+# from decouple import config // no quizo funcionar e.e
+import os
 
 app = FastAPI()
 
-GOOGLE_PLACES_API_KEY = "Teruel 7090"
+GOOGLE_PLACES_API_KEY = os.getenv("API_KEY")
 
-# curl -X POST "http://0.0.0.0:8000/nearby_veterinaries/" -H "Content-Type: application/json" -d '{"latitude": X, "longitude": Y}'
-
-class Location(BaseModel):
-    latitude: float
-    longitude: float
+class Address(BaseModel):
+    address: str
 
 # Returns alexa model
 @app.get("/")
@@ -44,12 +43,24 @@ def get_model():
     """
     return HTMLResponse(content=html_content, status_code=200)
 
-# Returns nearby veterinaries in a given location
+def get_coordinates(address):
+    geocoding_url = f"https://maps.googleapis.com/maps/api/geocode/json?address={address}&key={GOOGLE_PLACES_API_KEY}"
+    response = requests.get(geocoding_url)
+    geocoding_data = response.json()
+
+    if 'results' in geocoding_data and geocoding_data['results']:
+        location = geocoding_data['results'][0]['geometry']['location']
+        return location['lat'], location['lng']
+    else:
+        raise HTTPException(status_code=404, detail="Address not found")
+
+# Returns nearby veterinaries in a given address
 @app.post("/nearby_veterinaries/")
-def get_nearby_veterinaries(location: Location):
+def get_nearby_veterinaries(address: Address):
+    latitude, longitude = get_coordinates(address.address)
     places_url = (
         f"https://maps.googleapis.com/maps/api/place/nearbysearch/json"
-        f"?location={location.latitude},{location.longitude}"
+        f"?location={latitude},{longitude}"
         f"&radius=5000&type=veterinary_care&key={GOOGLE_PLACES_API_KEY}"
     )
     response = requests.get(places_url)

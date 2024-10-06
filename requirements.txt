@@ -2,3 +2,4 @@ fastapi
 uvicorn
 requests
 ask-sdk-core
+python-decouple
