@@ -54,7 +54,6 @@ def get_coordinates(address):
     else:
         raise HTTPException(status_code=404, detail="Address not found")
 
-# Returns nearby veterinaries in a given address
 @app.post("/nearby_veterinaries/")
 def get_nearby_veterinaries(address: Address):
     latitude, longitude = get_coordinates(address.address)
@@ -78,6 +77,25 @@ def get_nearby_veterinaries(address: Address):
     else:
         raise HTTPException(status_code=404, detail="No veterinary clinics found nearby")
 
+@app.post("/nearest_veterinary/")
+def get_nearest_veterinaries(address: Address):
+    latitude, longitude = get_coordinates(address.address)
+    places_url = (
+        f"https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+        f"?location={latitude},{longitude}"
+        f"&rankby=distance&type=veterinary_care&key={GOOGLE_PLACES_API_KEY}"
+    )
+    response = requests.get(places_url)
+    places_data = response.json()
+
+    if 'results' in places_data and places_data['results']:
+        nearest_veterinary = {
+            "name": places_data["results"][0]["name"],
+            "address": places_data["results"][0]["vicinity"]
+        }
+        return {"nearest_veterinary": nearest_veterinary}
+    else:
+        raise HTTPException(status_code=404, detail="No veterinary clinics found nearby")
 
 if __name__ == "__main__":
     import uvicorn
