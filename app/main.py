@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from fastapi.responses import HTMLResponse, Response
 import requests
+from fastapi import Request
 
 
 # from decouple import config // no quizo funcionar e.e
@@ -30,60 +31,91 @@ class Address(BaseModel):
     address: str
 
 
-# Returns alexa model
-@app.get("/")
-def get_model():
-    str_ = {
-  "version": "1.0",
-  "sessionAttributes": {},
-  "response": {
-    "outputSpeech": {
-      "type": "PlainText",
-      "text": "Aquí tienes la veterinaria más cercana."
-    },
-    "card": {
-      "type": "Simple",
-      "title": "Veterinaria Cercana",
-      "content": "La veterinaria más cercana está a 1.5 kilómetros de tu ubicación."
-    },
-    "reprompt": {
-      "outputSpeech": {
-        "type": "PlainText",
-        "text": "¿Quieres encontrar otra veterinaria cercana?"
-      }
-    },
-    "shouldEndSession": False
-  }
-}
-    return JSONResponse(content=str_)
+# # Returns alexa model
+# @app.get("/")
+# def get_model():
+#     str_ = {
+#   "version": "1.0",
+#   "sessionAttributes": {},
+#   "response": {
+#     "outputSpeech": {
+#       "type": "PlainText",
+#       "text": "Aquí tienes la veterinaria más cercana."
+#     },
+#     "card": {
+#       "type": "Simple",
+#       "title": "Veterinaria Cercana",
+#       "content": "La veterinaria más cercana está a 1.5 kilómetros de tu ubicación."
+#     },
+#     "reprompt": {
+#       "outputSpeech": {
+#         "type": "PlainText",
+#         "text": "¿Quieres encontrar otra veterinaria cercana?"
+#       }
+#     },
+#     "shouldEndSession": False
+#   }
+# }
+#     return JSONResponse(content=str_)
 
-# Returns alexa model
+# # Returns alexa model
+# @app.post("/")
+# def get_model():
+#     str_ = {
+#   "version": "1.0",
+#   "sessionAttributes": {},
+#   "response": {
+#     "outputSpeech": {
+#       "type": "PlainText",
+#       "text": "Aquí tienes la veterinaria más cercana."
+#     },
+#     "card": {
+#       "type": "Simple",
+#       "title": "Veterinaria Cercana",
+#       "content": "La veterinaria más cercana está a 1.5 kilómetros de tu ubicación."
+#     },
+#     "reprompt": {
+#       "outputSpeech": {
+#         "type": "PlainText",
+#         "text": "¿Quieres encontrar otra veterinaria cercana?"
+#       }
+#     },
+#     "shouldEndSession": False
+#   }
+# }
+#     return JSONResponse(content=str_)
+
 @app.post("/")
-def get_model():
-    str_ = {
-  "version": "1.0",
-  "sessionAttributes": {},
-  "response": {
-    "outputSpeech": {
-      "type": "PlainText",
-      "text": "Aquí tienes la veterinaria más cercana."
-    },
-    "card": {
-      "type": "Simple",
-      "title": "Veterinaria Cercana",
-      "content": "La veterinaria más cercana está a 1.5 kilómetros de tu ubicación."
-    },
-    "reprompt": {
-      "outputSpeech": {
-        "type": "PlainText",
-        "text": "¿Quieres encontrar otra veterinaria cercana?"
-      }
-    },
-    "shouldEndSession": False
-  }
-}
-    return JSONResponse(content=str_)
+async def alexa_handler(request: Request):
+    alexa_request = await request.json()
+    
+    # Cuando el usuario abre la skill
+    if alexa_request["request"]["type"] == "LaunchRequest":
+        return JSONResponse(content={
+            "version": "1.0",
+            "response": {
+                "outputSpeech": {
+                    "type": "PlainText",
+                    "text": "Bienvenido a OpenVet. ¿En qué puedo ayudarte?"
+                },
+                "shouldEndSession": False
+            }
+        })
 
+    elif alexa_request["request"]["type"] == "IntentRequest":
+        intent_name = alexa_request["request"]["intent"]["name"]
+
+        if intent_name == "GetNearbyVeterinaries":
+            return JSONResponse(content={
+                "version": "1.0",
+                "response": {
+                    "outputSpeech": {
+                        "type": "PlainText",
+                        "text": "Buscando las veterinarias más cercanas..."
+                    },
+                    "shouldEndSession": False
+                }
+            })
 
 @app.post("/nearby_veterinaries/", tags=["OpenVet"])
 def get_nearby_veterinaries(address: Address):
