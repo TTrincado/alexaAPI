@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from fastapi.responses import HTMLResponse, Response
 import requests
@@ -32,33 +33,56 @@ class Address(BaseModel):
 # Returns alexa model
 @app.get("/")
 def get_model():
-    html_content = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Alexa API Model</title>
-        <style>
-            body {
-                background-color: black;
-                color: white;
-                font-family: Arial, sans-serif;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-                margin: 0;
-            }
-        </style>
-    </head>
-    <body>
-        <div>
-            <h1>Alexa API model code MiniDev-P01</h1>
-            <p>OpenVet by MiniDev</p>
-        </div>
-    </body>
-    </html>
-    """
-    return HTMLResponse(content=html_content, status_code=200)
+    str_ = {
+  "version": "1.0",
+  "sessionAttributes": {},
+  "response": {
+    "outputSpeech": {
+      "type": "PlainText",
+      "text": "Aquí tienes la veterinaria más cercana."
+    },
+    "card": {
+      "type": "Simple",
+      "title": "Veterinaria Cercana",
+      "content": "La veterinaria más cercana está a 1.5 kilómetros de tu ubicación."
+    },
+    "reprompt": {
+      "outputSpeech": {
+        "type": "PlainText",
+        "text": "¿Quieres encontrar otra veterinaria cercana?"
+      }
+    },
+    "shouldEndSession": False
+  }
+}
+    return JSONResponse(content=str_)
+
+# Returns alexa model
+@app.post("/")
+def get_model():
+    str_ = {
+  "version": "1.0",
+  "sessionAttributes": {},
+  "response": {
+    "outputSpeech": {
+      "type": "PlainText",
+      "text": "Aquí tienes la veterinaria más cercana."
+    },
+    "card": {
+      "type": "Simple",
+      "title": "Veterinaria Cercana",
+      "content": "La veterinaria más cercana está a 1.5 kilómetros de tu ubicación."
+    },
+    "reprompt": {
+      "outputSpeech": {
+        "type": "PlainText",
+        "text": "¿Quieres encontrar otra veterinaria cercana?"
+      }
+    },
+    "shouldEndSession": False
+  }
+}
+    return JSONResponse(content=str_)
 
 
 @app.post("/nearby_veterinaries/", tags=["OpenVet"])
