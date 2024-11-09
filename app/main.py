@@ -112,15 +112,19 @@ def get_nearest_open_veterinaries(address: Address):
         f"&rankby=distance&type=veterinary_care&key={GOOGLE_PLACES_API_KEY}"
         f"&opennow=true"
     )
-    response = requests.get(places_url)
-    places_data = response.json()
+    try:
+        response = requests.get(places_url)
+        places_data = response.json()
 
-    if "results" in places_data and places_data["results"]:
-        return {"nearest_veterinary": obtain_veterinaries(places_data)}
-    else:
-        raise HTTPException(
-            status_code=404, detail="No veterinary clinics open found nearby"
-        )
+        if "results" in places_data and places_data["results"]:
+            return {"nearest_veterinary": obtain_veterinaries(places_data)}
+        else:
+            raise HTTPException(
+                status_code=404, detail="No veterinary clinics open found nearby"
+            )
+        
+    except HTTPException as e:
+        raise e
 
 
 def get_coordinates(address):
