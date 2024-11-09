@@ -4,13 +4,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import requests
 import os
-
+from pydantic import BaseModel
+from typing import Optional, Dict
 
 app = FastAPI(
     title="OpenVet",
     version="1.0.0",
     summary="OpenVet API, made for easy access to vets near you",
 )
+
+class AlexaRequestType(BaseModel):
+    type: str
+
+class AlexaRequest(BaseModel):
+    request: AlexaRequestType
 
 # Configuración de CORS
 app.add_middleware(
@@ -66,13 +73,14 @@ def get_model():
     """
     return HTMLResponse(content=html_content, status_code=200)
 
-@app.post("/alexa-call")
-async def alexa_handler(request: Request):
-    alexa_request = await request.json()
-    
-    # Cuando el usuario abre la skill
-    if alexa_request["request"]["type"] == "LaunchRequest":
-        return JSONResponse(content={
+@app.post("/alexa-call", description="Este endpoint maneja solicitudes de Alexa y requiere un JSON en el body con el campo 'request'. "
+                "El campo 'request' debe incluir un subcampo 'type' que indique el tipo de solicitud que envía Alexa. "
+                "Ejemplo de valores posibles para 'type': 'LaunchRequest' o 'IntentRequest'.")
+async def alexa_handler(alexa_request: AlexaRequest):
+    request_type = alexa_request.request.type
+
+    if request_type == "LaunchRequest":
+        return {
             "version": "1.0",
             "response": {
                 "outputSpeech": {
@@ -81,22 +89,22 @@ async def alexa_handler(request: Request):
                 },
                 "shouldEndSession": False
             }
-        })
+        }
 
-    elif alexa_request["request"]["type"] == "IntentRequest":
-        intent_name = alexa_request["request"]["intent"]["name"]
-
-        if intent_name == "GetNearbyVeterinaries":
-            return JSONResponse(content={
-                "version": "1.0",
-                "response": {
-                    "outputSpeech": {
-                        "type": "PlainText",
-                        "text": "Buscando las veterinarias más cercanas..."
-                    },
-                    "shouldEndSession": False
-                }
-            })
+    elif request_type == "IntentRequest":
+        return {
+            "version": "1.0",
+            "response": {
+                "outputSpeech": {
+                    "type": "PlainText",
+                    "text": "Buscando las veterinarias más cercanas..."
+                },
+                "shouldEndSession": False
+            }
+        }
+    
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported request type")
 
 @app.post("/nearby_veterinaries/", tags=["OpenVet"])
 def get_nearby_veterinaries(address: Address):
