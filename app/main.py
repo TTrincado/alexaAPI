@@ -80,16 +80,19 @@ async def alexa_handler(alexa_request: AlexaRequest):
     request_type = alexa_request.request.type
 
     if request_type == "LaunchRequest":
-        return {
-            "version": "1.0",
-            "response": {
-                "outputSpeech": {
-                    "type": "PlainText",
-                    "text": "Bienvenido a OpenVet. ¿En qué puedo ayudarte?"
+            return JSONResponse(
+                content={
+                    "version": "1.0",
+                    "response": {
+                        "outputSpeech": {
+                            "type": "PlainText",
+                            "text": "Bienvenido a OpenVet. ¿En qué puedo ayudarte?"
+                        },
+                        "shouldEndSession": False
+                    }
                 },
-                "shouldEndSession": False
-            }
-        }
+                headers={"Content-Type": "application/json"}
+            )
 
     elif request_type == "IntentRequest":
         return {
