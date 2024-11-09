@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse, Response, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import requests
@@ -36,7 +36,37 @@ tags_metadata = [
 class Address(BaseModel):
     address: str
 
-@app.post("/")
+@app.get("/")
+def get_model():
+    html_content = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Alexa API Model</title>
+        <style>
+            body {
+                background-color: black;
+                color: white;
+                font-family: Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <h1>Alexa API model code MiniDev-P01</h1>
+            <p>OpenVet by MiniDev</p>
+        </div>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content, status_code=200)
+
+@app.post("/alexa-call")
 async def alexa_handler(request: Request):
     alexa_request = await request.json()
     
