@@ -105,40 +105,44 @@ def get_nearest_veterinary(address: Address):
 
 @app.post("/nearest_open_veterinaries/", tags=["OpenVet"])
 def get_nearest_open_veterinaries(address: Address):
-    latitude, longitude = get_coordinates(address.address)
+
+    try: 
+        latitude, longitude = get_coordinates(address.address)
+    except HTTPException as e:
+        raise e
+    
     places_url = (
         f"{API_URL}place/nearbysearch/json"
         f"?location={latitude},{longitude}"
         f"&rankby=distance&type=veterinary_care&key={GOOGLE_PLACES_API_KEY}"
         f"&opennow=true"
     )
-    try:
-        response = requests.get(places_url)
-        places_data = response.json()
+    response = requests.get(places_url)
+    places_data = response.json()
 
-        if "results" in places_data and places_data["results"]:
-            return {"nearest_veterinary": obtain_veterinaries(places_data)}
-        else:
-            raise HTTPException(
-                status_code=404, detail="No veterinary clinics open found nearby"
-            )
-        
-    except HTTPException as e:
-        raise e
-
+    if "results" in places_data and places_data["results"]:
+        return {"nearest_veterinary": obtain_veterinaries(places_data)}
+    else:
+        raise HTTPException(
+            status_code=404, detail="No veterinary clinics open found nearby"
+        )
 
 def get_coordinates(address):
-    geocoding_url = (
-        f"{API_URL}geocode/json?address={address}&key={GOOGLE_PLACES_API_KEY}"
-    )
-    response: Response = requests.get(geocoding_url)
-    geocoding_data: dict = response.json()
+    try:
+        geocoding_url = (
+            f"{API_URL}geocode/json?address={address}&key={GOOGLE_PLACES_API_KEY}"
+        )
+        response: Response = requests.get(geocoding_url)
+        geocoding_data: dict = response.json()
+        print(geocoding_data)
 
-    if "results" in geocoding_data and geocoding_data["results"]:
-        location = geocoding_data["results"][0]["geometry"]["location"]
-        return location["lat"], location["lng"]
-    else:
-        raise HTTPException(status_code=404, detail="Address not found")
+        if "results" in geocoding_data and geocoding_data["results"]:
+            location = geocoding_data["results"][0]["geometry"]["location"]
+            return location["lat"], location["lng"]
+        else:
+            raise HTTPException(status_code=404, detail="Address not found")
+    except Exception as e:
+        raise e
 
 
 def obtain_veterinaries(response: Response, pagination_len: int = 3):
