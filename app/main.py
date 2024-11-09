@@ -1,18 +1,24 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse, Response
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from fastapi.responses import HTMLResponse, Response
 import requests
-from fastapi import Request
-
-
-# from decouple import config // no quizo funcionar e.e
 import os
+
 
 app = FastAPI(
     title="OpenVet",
     version="1.0.0",
     summary="OpenVet API, made for easy access to vets near you",
+)
+
+# Configuración de CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # O puedes especificar ["https://alexa.amazon.com"] si deseas restringirlo
+    allow_credentials=True,
+    allow_methods=["*"],  # Puedes restringir a ["POST"] si solo usas POST
+    allow_headers=["*"],
 )
 
 GOOGLE_PLACES_API_KEY = os.getenv("API_KEY")
@@ -29,61 +35,6 @@ tags_metadata = [
 
 class Address(BaseModel):
     address: str
-
-
-# # Returns alexa model
-# @app.get("/")
-# def get_model():
-#     str_ = {
-#   "version": "1.0",
-#   "sessionAttributes": {},
-#   "response": {
-#     "outputSpeech": {
-#       "type": "PlainText",
-#       "text": "Aquí tienes la veterinaria más cercana."
-#     },
-#     "card": {
-#       "type": "Simple",
-#       "title": "Veterinaria Cercana",
-#       "content": "La veterinaria más cercana está a 1.5 kilómetros de tu ubicación."
-#     },
-#     "reprompt": {
-#       "outputSpeech": {
-#         "type": "PlainText",
-#         "text": "¿Quieres encontrar otra veterinaria cercana?"
-#       }
-#     },
-#     "shouldEndSession": False
-#   }
-# }
-#     return JSONResponse(content=str_)
-
-# # Returns alexa model
-# @app.post("/")
-# def get_model():
-#     str_ = {
-#   "version": "1.0",
-#   "sessionAttributes": {},
-#   "response": {
-#     "outputSpeech": {
-#       "type": "PlainText",
-#       "text": "Aquí tienes la veterinaria más cercana."
-#     },
-#     "card": {
-#       "type": "Simple",
-#       "title": "Veterinaria Cercana",
-#       "content": "La veterinaria más cercana está a 1.5 kilómetros de tu ubicación."
-#     },
-#     "reprompt": {
-#       "outputSpeech": {
-#         "type": "PlainText",
-#         "text": "¿Quieres encontrar otra veterinaria cercana?"
-#       }
-#     },
-#     "shouldEndSession": False
-#   }
-# }
-#     return JSONResponse(content=str_)
 
 @app.post("/")
 async def alexa_handler(request: Request):
