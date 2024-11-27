@@ -19,6 +19,10 @@ class AlexaRequestType(BaseModel):
 class AlexaRequest(BaseModel):
     request: AlexaRequestType
 
+class Coordinates(BaseModel):
+    latitude: float
+    longitude: float
+
 # Configuración de CORS
 app.add_middleware(
     CORSMiddleware,
@@ -191,6 +195,30 @@ def get_coordinates(address):
             raise HTTPException(status_code=404, detail="Address not found")
     except Exception as e:
         raise e
+
+@app.post("/nearest_open_veterinaries_w_coordinates/")
+def get_nearest_open_veterinaries_w_coordinates(coordinates: Coordinates):
+
+    try: 
+        latitude, longitude = coordinates.latitude, coordinates.longitude
+    except HTTPException as e:
+        raise e
+    
+    places_url = (
+        f"{API_URL}place/nearbysearch/json"
+        f"?location={latitude},{longitude}"
+        f"&rankby=distance&type=veterinary_care&key={GOOGLE_PLACES_API_KEY}"
+        f"&opennow=true"
+    )
+    response = requests.get(places_url)
+    places_data = response.json()
+
+    if "results" in places_data and places_data["results"]:
+        return {"nearest_veterinary": obtain_veterinaries(places_data)}
+    else:
+        raise HTTPException(
+            status_code=404, detail="No veterinary clinics open found nearby"
+        )
 
 
 def obtain_veterinaries(response: Response, pagination_len: int = 3):
